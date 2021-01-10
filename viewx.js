@@ -53,7 +53,7 @@
 		});
 
 		if(tagName == "VX"){
-			if(vx.content == null) vx.content = win.$.trim(that.innerText);
+			if(vx.content == null) vx.content = that.innerText.trim();
 			if(vx.content.substr(0,2) == "{{" && vx.content.substr(vx.content.length-2) == "}}"){
 				var dataKeys = [];
 				var expression = vx.content.substr(2,vx.content.length-4).replace(/(?:([a-zA-Z]\w*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function(a0,a1){
@@ -99,8 +99,32 @@
 	};
 
 	function Page(o){
-		this.data = {};
-		win.$.extend(this,o);
+		var that = this;
+		that.data = {};
+		win.$.extend(that,o);
+
+		if(o.observers){
+			that.observers = {};
+			for(var keysName in o.observers){
+				var keysFun = o.observers[keysName],
+					keys = keysName.split(",");
+
+				var keysFun2 = function(){
+					var datas = [];
+					for(var i = 0; i < keys.length; i++){
+						datas.push(that.data[key]);
+					}
+					keysFun.apply(that,datas);
+				};
+
+				for(var i = 0; i < keys.length; i++){
+					var key = keys[i] = keys[i].trim(); //去空格
+					var keyObserver = that.observers[key]; //获取属性的观察器数组
+					if(!keyObserver) keyObserver = that.observers[key] = []; //如果观察器数组不存，则创建一个
+					keyObserver.push(keysFun2);
+				}
+			}
+		}
 	};
 
 	//把字符串的第一个字母转换成大写
@@ -110,12 +134,29 @@
 
 	Page.prototype = {
 		setData:function(a0, a1){
+			var that = this;
 			switch(arguments.length){
 				case 1:
-					for(var key in a0) setSingleData(this, key, a0[key]);
+					for(var key in a0) setSingleData(that, key, a0[key]);
+					if(that.observers){
+						var observer = [];
+						for(var key in a0){
+							var keyObserver = that.observers[key];
+							if(keyObserver)
+								for(var i = 0; i < keyObserver.length; i++) observer.push(keyObserver[i]);
+						}
+						observer.distinct();
+						for(var i = 0; i < observer.length; i++) observer[i]();
+					}
 					break;
 				case 2:
-					setSingleData(this, a0, a1);
+					setSingleData(that, a0, a1);
+					if(that.observers){
+						var observer = that.observers[a0];
+						if(observer){
+							for(var i = 0; i < observer.length; i++) observer[i]();
+						}
+					}
 					break;
 			}
 		}
