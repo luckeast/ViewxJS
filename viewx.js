@@ -106,23 +106,25 @@
 		if(o.observers){
 			that.observers = {};
 			for(var keysName in o.observers){
-				var keysFun = o.observers[keysName],
-					keys = keysName.split(",");
+				(function(){
+					var keysFun = o.observers[keysName],
+						keys = keysName.split(",");
 
-				var keysFun2 = function(){
-					var datas = [];
+					var keysFun2 = function(){
+						var datas = [];
+						for(var i = 0; i < keys.length; i++){
+							datas.push(that.data[key]);
+						}
+						keysFun.apply(that,datas);
+					};
+
 					for(var i = 0; i < keys.length; i++){
-						datas.push(that.data[key]);
+						var key = keys[i] = keys[i].trim(); //去空格
+						var keyObserver = that.observers[key]; //获取属性的观察器数组
+						if(!keyObserver) keyObserver = that.observers[key] = []; //如果观察器数组不存，则创建一个
+						keyObserver.push(keysFun2);
 					}
-					keysFun.apply(that,datas);
-				};
-
-				for(var i = 0; i < keys.length; i++){
-					var key = keys[i] = keys[i].trim(); //去空格
-					var keyObserver = that.observers[key]; //获取属性的观察器数组
-					if(!keyObserver) keyObserver = that.observers[key] = []; //如果观察器数组不存，则创建一个
-					keyObserver.push(keysFun2);
-				}
+				})()
 			}
 		}
 	};
