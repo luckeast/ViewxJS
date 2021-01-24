@@ -12,13 +12,11 @@
 		}
 	};
 
-	function compileElement(page, that){
-		var element = win.$(that), tagName = that.tagName.toUpperCase();
-		var vx = element.data().vx;
-		if(vx == null) element.data().vx = vx = {};
+	function compileElement(page, element){
+		if(element.dataset) var vx = element.dataset.vx; else element.dataset = {};
+		if(!vx) element.dataset.vx = vx = {};
 
-		win.$.each(that.attribute, function(){
-			var attr = that;
+		Array.prototype.forEach.call(element.attributes, function(attr){
 			if(attr.specified){
 				if(attr.name.substr(0,3) == "vx-"){
 					var attrName = attr.name.substr(3);
@@ -88,20 +86,19 @@
 		page.data[key] = data;
 		var vxDataKey = "vx-data-" + key;
 		var elements = win.document.getElementsByClassName(vxDataKey);
-		win.$.each(elements, function(){
-			var element = win.$(this);
-			var vx = element.data().vx || {};
+		Array.prototype.forEach.call(elements, function(element){
+			var vx = (element.dataset && element.dataset.vx) || {};
 			var vxSetFuncs = vx[vxDataKey] || [];
 			for(var i = 0; i < vxSetFuncs.length; i++){
 				vxSetFuncs[i]();
 			}
-		});
+		})
 	};
 
 	function Page(o){
 		var that = this;
 		that.data = {};
-		win.$.extend(that,o);
+		win.Object.assign(that,o);
 
 		if(o.observers){
 			that.observers = {};
@@ -177,11 +174,11 @@
 		}
 
 		var page = new Page(o);
-		win.$(win.document).ready(function(){
+		win.document.addEventListener("DOMContentLoaded", function(){
 			compilePage(page);
 			if (page.onLoad) page.onLoad();
 			if (page.onShow) page.onShow();
-		});
+		})
 	}
 
 })(window);
