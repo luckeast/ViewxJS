@@ -1,5 +1,7 @@
 (function(win){
 
+	document.createElement("vx"); //使ie6-8识别vx标签
+
 	function compilePage(page){
 		var elements = win.document.getElementsByClassName("vx");
 		for(var i = 0; i < elements.length; i++){
@@ -77,7 +79,7 @@
 						return "page.data." + a1;
 					} else return a0;
 				});
-				expression = win.eval("(function(page){ return " + expression + "})");
+				expression = win.eval("0||function(page){ return " + expression + "}"); //“0||”兼容ie6/7/8
 				var vxSetFunc = function(){
 					element.innerText = expression(page);
 				};
@@ -181,6 +183,14 @@
 	win.Page = function(o){
 		var onShow = o.onShow || function(){}
 		var onHide = o.onHide || function(){}
+		o.onShow = function(){
+			if (o.servicePath != null) win.require("/api/service.js").set(o.servicePath, this)
+			onShow.call(this)
+		}
+		o.onHide = function(){
+			if (o.servicePath != null) win.require("/api/service.js").set(o.servicePath, null)
+			onHide.call(this)
+		}
 
 		var page = new Page(o);
 		win.document.addEventListener("DOMContentLoaded", function(){
