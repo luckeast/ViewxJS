@@ -3,7 +3,8 @@
 #### 介绍
 viewx是一个前端的、mvc框架、轻量级、js模板引擎
 
-#### say hello
+## 示例
+#### /demo/say-hello.html
 
 ```
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
