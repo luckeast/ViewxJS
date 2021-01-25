@@ -3,23 +3,28 @@
 #### 介绍
 viewx是一个前端的、mvc框架、轻量级、js模板引擎
 
-
-#### 基础用法
+#### say hello
 
 ```
-<script>
-Page({
-    data:{
-        hello:0
-    },
-    sayHello:function(hello, world){
-        return hello;
-    }
-})
-</script>
-<div class="vx" vx-onclick="sayHello" vx-if="{{}}" vx-for="{{}}" vx-attr="{{}}" vx-style="color:{{hello}}">
-	<vx>{{hello}}</vx>
-</div>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="../lib/jsc.min.js" type="text/javascript"></script>
+    <script src="../viewx.min.js"></script>
+    <script>
+        Page({
+            data: {
+                name: "Tom"
+            }
+        })
+    </script>
+</head>
+<body>
+
+    <vx>{{name}}</vx> say hello
+
+</body>
+</html>
 ```
 
 
