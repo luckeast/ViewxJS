@@ -12,6 +12,23 @@
 		}
 	};
 
+	function hasClass(obj, cls) { 
+		return obj.className.match(new RegExp('(\s|^)' + cls + '(\s|$)')); 
+	}
+ 
+	function addClass(obj, cls) {
+		if(obj.classList) obj.classList.add(cls);
+		else if(!hasClass(obj, cls)) obj.className += " " + cls; 
+	}
+
+	function removeClass(obj, cls) {
+		if(obj.classList) obj.classList.remove(cls);
+		else if(hasClass(obj, cls)) { 
+			var reg = new RegExp('(\s|^)' + cls + '(\s|$)'); 
+			obj.className = obj.className.replace(reg, ' '); 
+		}
+	}
+
 	function compileElement(page, element){
 		if(element.dataset) var vx = element.dataset.vx; else element.dataset = {};
 		if(!vx) element.dataset.vx = vx = {};
@@ -32,14 +49,14 @@
 						expression = win.eval("(function(page){ return " + expression + "})");
 						var vxSetFunc = function(){
 							var attrValue = expression(page);
-							element.attr(attrName, attrValue);
+							element.setAttribute(attrName, attrValue);
 						};
 
 						dataKeys.forEach(function(dataKey, i){
 							var vxSetFuncs = vx["vx-data-"+dataKey];
 							if(vxSetFuncs == null){
 								vx["vx-data-"+dataKey] = vxSetFuncs = [];
-								element.addClass("vx-data-"+dataKey);
+								addClass(element, "vx-data-"+dataKey);
 							};
 
 							vxSetFuncs.push(vxSetFunc);
@@ -50,8 +67,8 @@
 			}
 		});
 
-		if(tagName == "VX"){
-			if(vx.content == null) vx.content = that.innerText.trim();
+		if(element.tagName.toUpperCase() == "VX"){
+			if(vx.content == null) vx.content = element.innerText.trim();
 			if(vx.content.substr(0,2) == "{{" && vx.content.substr(vx.content.length-2) == "}}"){
 				var dataKeys = [];
 				var expression = vx.content.substr(2,vx.content.length-4).replace(/(?:([a-zA-Z]\w*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function(a0,a1){
@@ -62,14 +79,14 @@
 				});
 				expression = win.eval("(function(page){ return " + expression + "})");
 				var vxSetFunc = function(){
-					that.innerText = expression(page);
+					element.innerText = expression(page);
 				};
 
 				dataKeys.forEach(function(dataKey, i){
 					var vxSetFuncs = vx["vx-data-"+dataKey];
 					if(vxSetFuncs == null){
 						vx["vx-data-"+dataKey] = vxSetFuncs = [];
-						element.addClass("vx-data-"+dataKey);
+						addClass(element, "vx-data-"+dataKey);
 					};
 
 					vxSetFuncs.push(vxSetFunc);
@@ -79,7 +96,7 @@
 			}
 		}
 
-		element.removeClass("vx");
+		removeClass(element, "vx");
 	}
 
 	function setSingleData(page, key, data){
@@ -164,14 +181,6 @@
 	win.Page = function(o){
 		var onShow = o.onShow || function(){}
 		var onHide = o.onHide || function(){}
-		o.onShow = function(){
-			if (o.servicePath != null) win.require("/api/service.js").set(o.servicePath, this)
-			onShow.call(this)
-		}
-		o.onHide = function(){
-			if (o.servicePath != null) win.require("/api/service.js").set(o.servicePath, null)
-			onHide.call(this)
-		}
 
 		var page = new Page(o);
 		win.document.addEventListener("DOMContentLoaded", function(){
