@@ -1,7 +1,7 @@
 # viewx
 
 #### 介绍
-viewx是一个前端的、mvc框架、轻量级、js模板引擎
+viewx是一个前端的、mvc框架、轻量级、js模板引擎，兼容ie6+、firefox、chrome
 
 ## 示例
 #### say hello
