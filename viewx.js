@@ -10,7 +10,7 @@
 
 		elements = win.document.getElementsByTagName("vx");
 		for (var i = 0; i < elements.length; i++) {
-			compileElement(page, elements[i]);
+			compileElement(page, elements[i], document.createElement("span"));
 		}
 	};
 
@@ -31,7 +31,19 @@
 		}
 	}
 
-	function compileElement(page, element) {
+	function compileElement(page, targetElement, replaceElement) {
+		var element = replaceElement || targetElement;
+
+		if (replaceElement) {
+			//复制属性
+			for (var i = 0; i < targetElement.attributes.length; i++) {
+				var attr = targetElement.attributes[i];
+				replaceElement.setAttribute(attr.name, attr.value);
+			}
+			//复制内容
+			replaceElement.innerHTML = targetElement.innerHTML;
+		}
+
 		if (element.datas) var vx = element.datas.vx; else element.datas = {};
 		if (!vx) element.datas.vx = vx = {};
 
@@ -42,15 +54,15 @@
 					var expressions = attr.value.match(/\{\{([^\}]*)\}\}/g) || [];
 					expressions.forEach(function (expression, i) {
 						var dataKeys = [];
-						expression = expression.replace(/(?:([a-zA-Z]\w*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (a0, a1) {
+						expression = expression.substr(2, expression.length - 4).replace(/(?:([a-zA-Z][\w\.]*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (a0, a1) {
 							if (a1) {
 								dataKeys.push(a1);
 								return "page.data." + a1;
 							} else return a0;
 						});
-						expression = win.eval("(function(page){ return " + expression + "})");
+						expression = win.eval("0||function(page, element){ return " + expression + "}");
 						var vxSetFunc = function () {
-							var attrValue = expression(page);
+							var attrValue = expression(page, element);
 							element.setAttribute(attrName, attrValue);
 						};
 
@@ -69,19 +81,20 @@
 			}
 		});
 
-		if (element.tagName.toUpperCase() == "VX") {
+		//replaceElement表示是vx标签
+		if (replaceElement) {
 			if (vx.content == null) vx.content = element.innerText.trim();
 			if (vx.content.substr(0, 2) == "{{" && vx.content.substr(vx.content.length - 2) == "}}") {
 				var dataKeys = [];
-				var expression = vx.content.substr(2, vx.content.length - 4).replace(/(?:([a-zA-Z]\w*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (a0, a1) {
+				var expression = vx.content.substr(2, vx.content.length - 4).replace(/(?:([a-zA-Z][\w\.]*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (a0, a1) {
 					if (a1) {
 						dataKeys.push(a1);
 						return "page.data." + a1;
 					} else return a0;
 				});
-				expression = win.eval("0||function(page){ return " + expression + "}");
+				expression = win.eval("0||function(page, element){ return " + expression + "}");
 				var vxSetFunc = function () {
-					element.innerText = expression(page);
+					element.innerText = expression(page, element);
 				};
 
 				dataKeys.forEach(function (dataKey, i) {
@@ -99,6 +112,9 @@
 		}
 
 		removeClass(element, "vx");
+
+		//替换vx标签元素
+		if (replaceElement) targetElement.parentNode.replaceChild(replaceElement, targetElement);
 	}
 
 	function setSingleData(page, key, data) {
