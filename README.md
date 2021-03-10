@@ -1,7 +1,28 @@
 # viewx
 
 #### 介绍
-viewx是一个前端的、mvc框架、轻量级、js模板引擎，兼容ie6+、firefox、chrome
+viewx是一个前端的、mvc框架、轻量级、js模板引擎
+
+
+#### 兼容性
+
+| | 浏览器 | 兼容性 |
+|-|-|-|
+| ![Internet Explorer](https://developer.mozilla.org/static/media/internet-explorer.cf17782c.svg "Internet Explorer")| Internet Explorer | 5.5 |
+| ![Chrome](https://developer.mozilla.org/static/media/chrome.4c570865.svg "Chrome")| Chrome | 1 |
+| ![Edge](https://developer.mozilla.org/static/media/edge.40018f6a.svg "Edge") | Edge  | 12 |
+| ![Firefox](https://developer.mozilla.org/static/media/firefox.51d8a59c.svg "Firefox") | Firefox | 3 |
+| ![Opera](https://developer.mozilla.org/static/media/opera.a0ab0c50.svg "Opera") | Opera | 15 |
+| ![Safari](https://developer.mozilla.org/static/media/safari.3679eb31.svg "Safari") | Safari | 4 |
+| ![WebView Android](https://developer.mozilla.org/static/media/android.7d9bf320.svg "WebView Android") | WebView Android | 1 |
+| ![Chrome Android](https://developer.mozilla.org/static/media/chrome.4c570865.svg "Chrome Android") | Chrome Android | 18 |
+| ![Firefox Android](https://developer.mozilla.org/static/media/firefox.51d8a59c.svg "Firefox Android") | Firefox Android | 4 |
+| ![Opera Android](https://developer.mozilla.org/static/media/opera.a0ab0c50.svg "Opera Android") | Opera Android | 14 |
+| ![iOS Safari](https://developer.mozilla.org/static/media/safari.3679eb31.svg "iOS Safari") | iOS Safari | 3.2 |
+| ![Samsung Internet](https://developer.mozilla.org/static/media/samsung-internet.6fd7f423.svg "Samsung Internet") | Samsung Internet | 1.0 |
+
+
+兼容ie6+、firefox、chrome
 
 ## 示例
 #### say hello
