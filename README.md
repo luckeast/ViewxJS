@@ -121,3 +121,74 @@ viewx是一个前端的、mvc框架、轻量级、js模板引擎，兼容ie6+、
 ```
 示例文件：/demo/observers.html
 
+
+#### 循环
+
+```
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="../lib/jsc.min.js" type="text/javascript"></script>
+    <script src="../viewx.min.js"></script>
+    <script>
+        Page({
+            data: {
+                list:[{ name:"hello" },{ name:"kity" },{ name:"tom" },{ name:"cat" }]
+            },
+            onLoad: function () {
+                
+            }
+        })
+    </script>
+</head>
+<body>
+
+    <div class="vx" vx-for="{{list}}" for-item="item" for-index="index">
+
+        <div>
+            name:<vx>{{item.name}}</vx>, index:<vx>{{index}}</vx>
+            <span class="vx" vx-if="{{index%2==0}}">, 奇数行</span>
+            <span class="vx" vx-if="{{index%2==1}}">, 偶数行</span>
+        </div>
+
+    </div>
+
+</body>
+</html>
+```
+
+#### 条件
+
+```
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="../lib/jsc.min.js" type="text/javascript"></script>
+    <script src="../viewx.min.js"></script>
+    <script>
+        Page({
+            data: {
+                show: true,
+                name: "Tom"
+            },
+            onLoad: function () {
+                var that = this;
+
+                setInterval(function () {
+                    that.setData({
+                        show: !that.data.show
+                    });
+                }, 500);
+            }
+        })
+    </script>
+</head>
+<body>
+
+    <div class="vx" vx-if="{{show}}">Hi, <vx>{{name}}</vx>!</div>
+
+</body>
+</html>
+```
+
+
