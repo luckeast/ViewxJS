@@ -46,7 +46,7 @@
 							//if (element.parentNode.childNodes.length > 3) throw "for missing contain";
 
 							element.vxType = 2;
-							parentElement.innerHTML = "";
+							Element_clearChild(parentElement);
 							//parentElement.appendChild(element);
 							//var parentVx = parentElement.vx || (parentElement.vx = {});
 							if (!parentElement.vxTemplate) {
@@ -73,13 +73,13 @@
 							case "if":
 								if (vxData[attrName] != attrValue) {
 									vxData[attrName] = attrValue;
-									console.log(attrValue)
-									if (attrValue) element.innerHTML = element.vxTemplate; else element.innerHTML = "";
+									Element_clearChild(element);
+									if (attrValue) element.innerHTML = element.vxTemplate;
 									compileViewx(page);
 								}
 								break;
 							case "for":
-								parentElement.innerHTML = "";
+								Element_clearChild(parentElement);
 								vxData[attrName] = attrValue;
 								if (attrValue) {
 									var documentFragment = document.createDocumentFragment();
@@ -96,6 +96,7 @@
 								};
 								break;
 							case "template":
+								Element_clearChild(element);
 								element.innerHTML = attrValue;
 								compileViewx(page);
 								break;
@@ -272,6 +273,10 @@
 			obj.className = obj.className.replace(reg, ' ');
 		}
 	}
+
+	function Element_clearChild(element) {
+		while (element.hasChildNodes()) element.removeChild(element.firstChild);
+    }
 
 	/*** viewx ***/
 	var viewx = win.vx = function () {
