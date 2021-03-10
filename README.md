@@ -156,6 +156,7 @@ viewx是一个前端的、mvc框架、轻量级、js模板引擎，兼容ie6+、
 </body>
 </html>
 ```
+示例文件：/demo/for.html
 
 #### 条件
 
@@ -190,5 +191,6 @@ viewx是一个前端的、mvc框架、轻量级、js模板引擎，兼容ie6+、
 </body>
 </html>
 ```
+示例文件：/demo/if.html
 
 
