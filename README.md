@@ -21,7 +21,6 @@ viewx是一个前端mvc框架
 | ![Firefox](https://developer.mozilla.org/static/media/firefox.51d8a59c.svg "Firefox") | Firefox | 3 |
 | ![Opera](https://developer.mozilla.org/static/media/opera.a0ab0c50.svg "Opera") | Opera | 15 |
 | ![Safari](https://developer.mozilla.org/static/media/safari.3679eb31.svg "Safari") | Safari | 4 |
-|  | ----------------- |  |
 
 
 | 手机端 | 浏览器 | 最小版本 |
@@ -32,7 +31,6 @@ viewx是一个前端mvc框架
 | ![Opera Android](https://developer.mozilla.org/static/media/opera.a0ab0c50.svg "Opera Android") | Opera Android | 14 |
 | ![iOS Safari](https://developer.mozilla.org/static/media/safari.3679eb31.svg "iOS Safari") | iOS Safari | 3.2 |
 | ![Samsung Internet](https://developer.mozilla.org/static/media/samsung-internet.6fd7f423.svg "Samsung Internet") | Samsung Internet | 1.0 |
-|  | ----------------- |  |
 
 #### 编译原理
 
