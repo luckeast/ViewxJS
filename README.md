@@ -1,7 +1,14 @@
 # viewx
 
 #### 介绍
-viewx是一个前端的、mvc框架、轻量级、js模板引擎
+viewx是一个前端mvc框架
+
+#### 文件大小
+|文件名|文件大小|
+|--|--|
+|viewx.min.js + gzip|2.05k|
+|viewx.min.js|4.7k|
+|viewx.js|12.8k|
 
 
 #### 兼容版本
