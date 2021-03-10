@@ -34,8 +34,46 @@ viewx是一个前端mvc框架
 | ![Samsung Internet](https://developer.mozilla.org/static/media/samsung-internet.6fd7f423.svg "Samsung Internet") | Samsung Internet | 1.0 |
 |  | ----------------- |  |
 
+#### 编译原理
 
-兼容ie6+、firefox、chrome
+1. 通过document.getElementsByClass("vx")，寻找需要编译的标签
+2. 通过带"vx-"前缀的属性名，寻找需要编译的属性
+3. 通过document.getElementsByTagName("vx")，寻找需要编译的文本内容
+
+> viewx的编译原理，使得动态编译很快，可以考虑不需要预编译。
+
+#### 动态编译嵌套模板
+
+> 可能一些特殊的开发场景，使用动态编译比预编译更方便。<br>
+> 如：把自定义模板存放在表中，通过ajax获取模板内容，通过嵌套模板(v-template)，动态编译模板并展示。
+
+```
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="../lib/jsc.min.js" type="text/javascript"></script>
+    <script src="../viewx.min.js"></script>
+    <script>
+        Page({
+            data: {
+                myTemplate: null,
+                name: "Tom"
+            },
+            onLoad: function(){
+                this.setData({ myTemplate:"Hi,<vx>{{name}}</vx>" });
+            }
+        })
+    </script>
+</head>
+<body>
+    动态编译嵌套模板：
+    <div class="vx" v-template="{{myTemplate}}"></div>
+</body>
+</html>
+
+```
+
+
 
 ## 示例
 #### say hello
