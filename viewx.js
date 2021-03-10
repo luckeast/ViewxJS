@@ -2,17 +2,259 @@
 
 	document.createElement("vx"); //使ie6-8识别vx标签
 
-	function compilePage(page) {
-		var elements = win.document.getElementsByClassName("vx");
-		for (var i = 0; i < elements.length; i++) {
-			compileElement(page, elements[i]);
+	//把字符串的第一个字母转换成大写
+	//var toFirstUpper = function(name){
+	//	return name.substr(0,1).toUpperCase() + name.substr(1);
+	//}
+
+	/*** Element ***/
+	function Element_compile(page, targetElement, replaceElement) {
+		var element = replaceElement || targetElement;
+		var parentElement = targetElement.parentNode;
+
+		if (replaceElement) {
+			//复制属性
+			for (var i = 0; i < targetElement.attributes.length; i++) {
+				var attr = targetElement.attributes[i];
+				replaceElement.setAttribute(attr.name, attr.value);
+			}
+			//复制内容
+			replaceElement.innerHTML = targetElement.innerHTML;
+
+			//替换vx标签元素
+			parentElement.replaceChild(replaceElement, targetElement);
 		}
 
-		elements = win.document.getElementsByTagName("vx");
-		for (var i = 0; i < elements.length; i++) {
-			compileElement(page, elements[i], document.createElement("span"));
+		var vxData = element.vxData || (element.vxData = {});
+		//var vx = element.vx || (element.vx = {});
+		//var classMap = vx.classMap || (vx.classMap = { });
+
+		Array.prototype.forEach.call(element.attributes, function (attr) {
+			if (attr.specified) { //如果这个属性你在源代码或者在脚本中明确指定的话，它总是返回真。否则它是由文档的DTD默认定义的，将总是返回假。
+				if (attr.name.substr(0, 3) == "vx-") {
+					var attrName = attr.name.substr(3);
+
+					switch (attrName) {
+						case "if":
+							element.vxType = 1;
+							if (!element.vxTemplate) {
+								element.setAttribute("template", "...");
+								element.vxTemplate = element.innerHTML;
+							}
+							break;
+						case "for":
+							//if (element.parentNode.childNodes.length > 3) throw "for missing contain";
+
+							element.vxType = 2;
+							parentElement.innerHTML = "";
+							//parentElement.appendChild(element);
+							//var parentVx = parentElement.vx || (parentElement.vx = {});
+							if (!parentElement.vxTemplate) {
+								parentElement.setAttribute("template", "...");
+								parentElement.vxTemplate = element;
+							}
+							break;
+					}
+
+					//一个属性有一个设置程序
+					//一个属性有多个逻辑表达式
+					//一个逻辑表达式有一个逻辑编译程序
+					//一个逻辑表达式有：多个指针表达式 + 多个字符表达式
+					//一个指针表达式 => 一个指针有：一个getClassName + 一个getData + 一个文本 + 一个设置程序
+					var attrFunc = function () {
+						//执行属性表达式，获取属性值
+						var attrValue = attrFuncParts.map(function (attrFuncPart) { return attrFuncPart(); });
+						if (attrValue.length < 2)
+							attrValue = attrValue[0];
+						else
+							attrValue = attrValue.join("");
+
+						switch (attrName) {
+							case "if":
+								if (vxData[attrName] != attrValue) {
+									vxData[attrName] = attrValue;
+									console.log(attrValue)
+									if (attrValue) element.innerHTML = element.vxTemplate; else element.innerHTML = "";
+									compileViewx(page);
+								}
+								break;
+							case "for":
+								parentElement.innerHTML = "";
+								vxData[attrName] = attrValue;
+								if (attrValue) {
+									var documentFragment = document.createDocumentFragment();
+									for (var i = 0; i < attrValue.length; i++) {
+										var cloneElement = Element_Clone(element);
+										cloneElement.removeAttribute("vx-for");
+										cloneElement.vxForIndex = i;
+										cloneElement.vxForItem = attrValue[i];
+										cloneElement.vxType = 2;
+										documentFragment.appendChild(cloneElement);
+									}
+									parentElement.appendChild(documentFragment, element);
+									compileViewx(page);
+								};
+								break;
+							case "template":
+								element.innerHTML = attrValue;
+								compileViewx(page);
+								break;
+							default:
+								element.setAttribute(attrName, attrValue);
+								break;
+						}
+					}
+
+					var attrFuncParts = [];
+					attr.value.match(/(?:\{\{([^\}]*)\}\})|((?:[^{]+|\{))/g).forEach(function (matchItem) {
+						if (matchItem.indexOf("{{") >= 0) {
+							attrFuncParts.push(Element_compileLogicExpression(page, element, matchItem, attrFunc));
+						} else {
+							attrFuncParts.push(function () {
+								return matchItem; //stringExpression
+							});
+						}
+					});
+
+					//pointExpressions.forEach(function (attrPointExpression) {
+					//	var point1 = attrPointExpression.match(/^\w+/);
+					//	var pointFuncs = vx["vx-data-" + point1]; //元素里所有指针表达式
+					//	if (pointFuncs == null) {
+					//		vx["vx-data-" + point1] = pointFuncs = [];
+					//		addClass(element, "vx-data-" + point1);
+					//	};
+
+					//	pointFuncs.push(attrFunc);
+					//});
+
+					attrFunc(); //初始化一次
+				}
+			}
+		});
+
+
+		//<span>替换<vx>
+		//replaceElement表示是vx标签
+		if (replaceElement)
+		{
+			if (element.vxInnerText == null) element.vxInnerText = element.innerText.trim();
+			if (element.vxInnerText.substr(0, 2) == "{{" && element.vxInnerText.substr(element.vxInnerText.length - 2) == "}}") {
+
+				//var dataKeys = [];
+				//var expression = element.vxInnerText.substr(2, element.vxInnerText.length - 4).replace(/(?:([a-zA-Z][\w\.]*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (a0, a1) {
+				//	if (a1) {
+				//		dataKeys.push(a1);
+				//		return "page.data." + a1;
+				//	} else return a0;
+				//});
+				//expression = win.eval("0||function(page, element){ return " + expression + "}");
+
+				var textFunc = function () {
+					element.innerText = expression(page, element);
+				};
+				var expression = Element_compileLogicExpression(page, element, element.vxInnerText, textFunc);
+
+				textFunc(); //初始化一次
+			} else throw element.vxInnerText;
 		}
-	};
+
+		removeClass(element, "vx");
+	}
+
+	function Element_compileLogicExpression(page, element, logicExpressionOuter, /*设置程序*/setFun)
+	{
+		var logicExpression = logicExpressionOuter.substr(2, logicExpressionOuter.length - 4).replace(/(?:([a-zA-Z][\w\.\[\]0-9]*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (otherExpression, pointExpression) {
+			if (pointExpression) {
+				var pointItems = pointExpression.split(".");
+				var scope = Element_getScope(element/*.parentNode*/);
+				var dataFun = scope[pointItems[0]];
+				if (dataFun === undefined) {
+					//class绑定
+					var vxData = element.vxData || (element.vxData = {});
+					var pointFuncs = vxData["vx-data-" + pointExpression];
+					if (pointFuncs == null) {
+						vxData["vx-data-" + pointExpression] = pointFuncs = [];
+						addClass(element, "vx-data-" + pointExpression);
+					};
+
+					pointFuncs.push(setFun);
+                }
+
+				return 'fn("' + pointExpression + '")';
+			} else return otherExpression;
+		});
+		logicExpression = win.eval("0||function(fn){ return " + logicExpression + "}");
+
+		return function () {
+			return logicExpression(function (pointExpression) {
+
+				var pointItems = pointExpression.split(".");
+				var scope = Element_getScope(element/*.parentNode*/);
+				var dataFun = scope[pointItems[0]];
+				if (dataFun !== undefined)
+					return Element_getObjectData(dataFun(), pointItems, 1);
+				else
+					return Element_getObjectData(page.data, pointItems, 0);
+
+			});
+		}
+    }
+
+	//return:[className, page.data, for.data]
+	function Element_getScope(element) {
+		if (element) {
+			if (element.vxCs == viewx.cs) { //编译号相等
+				return element.vxScope;
+			} else { //编译号不相等，刷新scopes
+				element.vxCs = viewx.cs;
+
+				if (element.tagName != "HTML") { //非HTML标签
+
+					if (element.vxType != 2) { //普通标签、条件标签
+						return element.vxScope = Element_getScope(element.parentNode);
+					} else { //循环标签
+						var scope = element.vxScope = Object.assign({}, Element_getScope(element.parentNode));
+
+						var forItemName = element.getAttribute("for-item") || "item";
+						var forIndexName = element.getAttribute("for-index") || "index";
+
+						scope[forItemName] = function () {
+							return element.vxForItem;
+						};
+						scope[forIndexName] = function () {
+							return element.vxForIndex;
+						};
+
+						return scope;
+					}
+				} else { //HTML标签
+					return element.vxScope || (element.vxScope = {});
+				}
+			}
+		} else return {};
+	}
+
+	function Element_getObjectData(data, pointItems, start)
+	{
+		for (var i = start; i < pointItems.length; i++)
+		{
+			if (data == null) return null;
+			data = data[pointItems[i]];
+		}
+		return data;
+	}
+
+	function Element_Clone(element)
+	{
+		var cloneNode = element.cloneNode();
+
+		for (var i = 0; i < element.childNodes.length; i++)
+		{
+			cloneNode.appendChild(Element_Clone(element.childNodes[i]));
+		}
+
+		return cloneNode;
+	}
 
 	function hasClass(obj, cls) {
 		return obj.className.match(new RegExp('(\s|^)' + cls + '(\s|$)'));
@@ -31,105 +273,36 @@
 		}
 	}
 
-	function compileElement(page, targetElement, replaceElement) {
-		var element = replaceElement || targetElement;
-
-		if (replaceElement) {
-			//复制属性
-			for (var i = 0; i < targetElement.attributes.length; i++) {
-				var attr = targetElement.attributes[i];
-				replaceElement.setAttribute(attr.name, attr.value);
-			}
-			//复制内容
-			replaceElement.innerHTML = targetElement.innerHTML;
-		}
-
-		if (element.datas) var vx = element.datas.vx; else element.datas = {};
-		if (!vx) element.datas.vx = vx = {};
-
-		Array.prototype.forEach.call(element.attributes, function (attr) {
-			if (attr.specified) {
-				if (attr.name.substr(0, 3) == "vx-") {
-					var attrName = attr.name.substr(3);
-					var expressions = attr.value.match(/\{\{([^\}]*)\}\}/g) || [];
-					expressions.forEach(function (expression, i) {
-						var dataKeys = [];
-						expression = expression.substr(2, expression.length - 4).replace(/(?:([a-zA-Z][\w\.]*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (a0, a1) {
-							if (a1) {
-								dataKeys.push(a1);
-								return "page.data." + a1;
-							} else return a0;
-						});
-						expression = win.eval("0||function(page, element){ return " + expression + "}");
-						var vxSetFunc = function () {
-							var attrValue = expression(page, element);
-							element.setAttribute(attrName, attrValue);
-						};
-
-						dataKeys.forEach(function (dataKey, i) {
-							var vxSetFuncs = vx["vx-data-" + dataKey];
-							if (vxSetFuncs == null) {
-								vx["vx-data-" + dataKey] = vxSetFuncs = [];
-								addClass(element, "vx-data-" + dataKey);
-							};
-
-							vxSetFuncs.push(vxSetFunc);
-						});
-						vxSetFunc();
-					});
-				}
-			}
-		});
-
-		//replaceElement表示是vx标签
-		if (replaceElement) {
-			if (vx.content == null) vx.content = element.innerText.trim();
-			if (vx.content.substr(0, 2) == "{{" && vx.content.substr(vx.content.length - 2) == "}}") {
-				var dataKeys = [];
-				var expression = vx.content.substr(2, vx.content.length - 4).replace(/(?:([a-zA-Z][\w\.]*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (a0, a1) {
-					if (a1) {
-						dataKeys.push(a1);
-						return "page.data." + a1;
-					} else return a0;
-				});
-				expression = win.eval("0||function(page, element){ return " + expression + "}");
-				var vxSetFunc = function () {
-					element.innerText = expression(page, element);
-				};
-
-				dataKeys.forEach(function (dataKey, i) {
-					var vxSetFuncs = vx["vx-data-" + dataKey];
-					if (vxSetFuncs == null) {
-						vx["vx-data-" + dataKey] = vxSetFuncs = [];
-						addClass(element, "vx-data-" + dataKey);
-					};
-
-					vxSetFuncs.push(vxSetFunc);
-				});
-
-				vxSetFunc();
-			}
-		}
-
-		removeClass(element, "vx");
-
-		//替换vx标签元素
-		if (replaceElement) targetElement.parentNode.replaceChild(replaceElement, targetElement);
+	/*** viewx ***/
+	var viewx = win.vx = function () {
+		compileViewx(rootPage);
 	}
 
-	function setSingleData(page, key, data) {
-		page.data[key] = data;
-		var vxDataKey = "vx-data-" + key;
-		var elements = win.document.getElementsByClassName(vxDataKey);
-		Array.prototype.forEach.call(elements, function (element) {
-			var vx = (element.datas && element.datas.vx) || {};
-			var vxSetFuncs = vx[vxDataKey] || [];
-			for (var i = 0; i < vxSetFuncs.length; i++) {
-				vxSetFuncs[i]();
+	function compileViewx(page) {
+		if (viewx.ci) return;
+		viewx.ci = true; //编译中
+		viewx.cs = (viewx.cs || 0) + 1; //编译号
+
+		try {
+			while (true) {
+				var element = win.document.getElementsByClassName("vx")[0];
+				if (element) {
+					Element_compile(page, element);
+				} else break;
 			}
-		})
+
+			while (true) {
+				var element = win.document.getElementsByTagName("vx")[0];
+				if (element) {
+					Element_compile(page, element, document.createElement("span"));
+				} else break;
+			}
+		} finally {
+			viewx.ci = false;
+        }
 	};
 
+	/*** Page ***/
 	function Page(o) {
 		var that = this;
 		that.data = {};
@@ -161,17 +334,12 @@
 		}
 	};
 
-	//把字符串的第一个字母转换成大写
-	//var toFirstUpper = function(name){
-	//	return name.substr(0,1).toUpperCase() + name.substr(1);
-	//}
-
 	Page.prototype = {
 		setData: function (a0, a1) {
 			var that = this;
 			switch (arguments.length) {
 				case 1:
-					for (var key in a0) setSingleData(that, key, a0[key]);
+					for (var key in a0) Page_setSingleData(that, key, a0[key]);
 					if (that.observers) {
 						var observer = [];
 						for (var key in a0) {
@@ -184,7 +352,7 @@
 					}
 					break;
 				case 2:
-					setSingleData(that, a0, a1);
+					Page_setSingleData(that, a0, a1);
 					if (that.observers) {
 						var observer = that.observers[a0];
 						if (observer) {
@@ -196,6 +364,20 @@
 		}
 	};
 
+	function Page_setSingleData(page, key, data) {
+		page.data[key] = data;
+		var vxDataKey = "vx-data-" + key;
+		var elements = win.document.getElementsByClassName(vxDataKey);
+		Array.prototype.forEach.call(elements, function (element) {
+			var vxData = element.vxData || (element.vxData = {});
+			var vxSetFuncs = vxData[vxDataKey] || [];
+			for (var i = 0; i < vxSetFuncs.length; i++) {
+				vxSetFuncs[i]();
+			}
+		})
+	};
+
+	var rootPage;
 	win.Page = function (o) {
 		var onShow = o.onShow || function () { }
 		var onHide = o.onHide || function () { }
@@ -208,11 +390,12 @@
 			onHide.call(this)
 		}
 
-		var page = new Page(o);
+		if (rootPage) throw "Page created";
+		rootPage = new Page(o);
 		win.document.addEventListener("DOMContentLoaded", function () {
-			compilePage(page);
-			if (page.onLoad) page.onLoad();
-			if (page.onShow) page.onShow();
+			compileViewx(rootPage);
+			if (rootPage.onLoad) rootPage.onLoad();
+			if (rootPage.onShow) rootPage.onShow();
 		})
 	}
 
