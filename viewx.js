@@ -1,6 +1,6 @@
 (function (win) {
 
-	document.createElement("vx"); //使ie6-8识别vx标签
+	document.createElement(""vx""); //使ie6-8识别vx标签
 
 	//把字符串的第一个字母转换成大写
 	//var toFirstUpper = function(name){
@@ -28,29 +28,29 @@
 		var vxData = element.vxData || (element.vxData = {});
 		//var vx = element.vx || (element.vx = {});
 		//var classMap = vx.classMap || (vx.classMap = { });
-
+		
 		Array.prototype.forEach.call(element.attributes, function (attr) {
 			if (attr.specified) { //如果这个属性你在源代码或者在脚本中明确指定的话，它总是返回真。否则它是由文档的DTD默认定义的，将总是返回假。
-				if (attr.name.substr(0, 3) == "vx-") {
+				if (attr.name.substr(0, 3) == ""vx-"") {
 					var attrName = attr.name.substr(3);
 
 					switch (attrName) {
-						case "if":
+						case ""if"":
 							element.vxType = 1;
 							if (!element.vxTemplate) {
-								element.setAttribute("template", "...");
+								element.setAttribute(""template"", ""..."");
 								element.vxTemplate = element.innerHTML;
 							}
 							break;
-						case "for":
-							//if (element.parentNode.childNodes.length > 3) throw "for missing contain";
+						case ""for"":
+							//if (element.parentNode.childNodes.length > 3) throw ""for missing contain"";
 
 							element.vxType = 2;
 							Element_clearChild(parentElement);
 							//parentElement.appendChild(element);
 							//var parentVx = parentElement.vx || (parentElement.vx = {});
 							if (!parentElement.vxTemplate) {
-								parentElement.setAttribute("template", "...");
+								parentElement.setAttribute(""template"", ""..."");
 								parentElement.vxTemplate = element;
 							}
 							break;
@@ -67,10 +67,10 @@
 						if (attrValue.length < 2)
 							attrValue = attrValue[0];
 						else
-							attrValue = attrValue.join("");
-
+							attrValue = attrValue.join("""");
+						
 						switch (attrName) {
-							case "if":
+							case ""if"":
 								if (vxData[attrName] != attrValue) {
 									vxData[attrName] = attrValue;
 									Element_clearChild(element);
@@ -78,14 +78,14 @@
 									compileViewx(page);
 								}
 								break;
-							case "for":
+							case ""for"":
 								Element_clearChild(parentElement);
 								vxData[attrName] = attrValue;
 								if (attrValue) {
 									var documentFragment = document.createDocumentFragment();
 									for (var i = 0; i < attrValue.length; i++) {
 										var cloneElement = Element_Clone(element);
-										cloneElement.removeAttribute("vx-for");
+										cloneElement.removeAttribute(""vx-for"");
 										cloneElement.vxForIndex = i;
 										cloneElement.vxForItem = attrValue[i];
 										cloneElement.vxType = 2;
@@ -95,7 +95,7 @@
 									compileViewx(page);
 								};
 								break;
-							case "template":
+							case ""template"":
 								Element_clearChild(element);
 								element.innerHTML = attrValue;
 								compileViewx(page);
@@ -108,25 +108,14 @@
 
 					var attrFuncParts = [];
 					attr.value.match(/(?:\{\{([^\}]*)\}\})|((?:[^{]+|\{))/g).forEach(function (matchItem) {
-						if (matchItem.indexOf("{{") >= 0) {
-							attrFuncParts.push(Element_compileLogicExpression(page, element, matchItem, attrFunc));
+						if (matchItem.indexOf(""{{"") >= 0) {
+							attrFuncParts.push(Element_compileLogicExpression(page, element, parentElement, matchItem, attrFunc));
 						} else {
 							attrFuncParts.push(function () {
 								return matchItem; //stringExpression
 							});
 						}
 					});
-
-					//pointExpressions.forEach(function (attrPointExpression) {
-					//	var point1 = attrPointExpression.match(/^\w+/);
-					//	var pointFuncs = vx["vx-data-" + point1]; //元素里所有指针表达式
-					//	if (pointFuncs == null) {
-					//		vx["vx-data-" + point1] = pointFuncs = [];
-					//		addClass(element, "vx-data-" + point1);
-					//	};
-
-					//	pointFuncs.push(attrFunc);
-					//});
 
 					attrFunc(); //初始化一次
 				}
@@ -139,58 +128,49 @@
 		if (replaceElement)
 		{
 			if (element.vxInnerText == null) element.vxInnerText = element.innerText.trim();
-			if (element.vxInnerText.substr(0, 2) == "{{" && element.vxInnerText.substr(element.vxInnerText.length - 2) == "}}") {
-
-				//var dataKeys = [];
-				//var expression = element.vxInnerText.substr(2, element.vxInnerText.length - 4).replace(/(?:([a-zA-Z][\w\.]*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (a0, a1) {
-				//	if (a1) {
-				//		dataKeys.push(a1);
-				//		return "page.data." + a1;
-				//	} else return a0;
-				//});
-				//expression = win.eval("0||function(page, element){ return " + expression + "}");
+			if (element.vxInnerText.substr(0, 2) == ""{{"" && element.vxInnerText.substr(element.vxInnerText.length - 2) == ""}}"") {
 
 				var textFunc = function () {
 					element.innerText = expression(page, element);
 				};
-				var expression = Element_compileLogicExpression(page, element, element.vxInnerText, textFunc);
+				var expression = Element_compileLogicExpression(page, element, parentElement, element.vxInnerText, textFunc);
 
 				textFunc(); //初始化一次
 			} else throw element.vxInnerText;
 		}
 
-		removeClass(element, "vx");
+		removeClass(element, ""vx"");
 	}
 
-	function Element_compileLogicExpression(page, element, logicExpressionOuter, /*设置程序*/setFun)
+	function Element_compileLogicExpression(page, element, parentElement, logicExpressionOuter, /*设置程序*/setFun)
 	{
-		var logicExpression = logicExpressionOuter.substr(2, logicExpressionOuter.length - 4).replace(/(?:([a-zA-Z][\w\.\[\]0-9]*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (otherExpression, pointExpression) {
+		var logicExpression = logicExpressionOuter.substr(2, logicExpressionOuter.length - 4).replace(/(?:([a-zA-Z][\w\.\[\]0-9]*))|(?:\""[^\""]*\"")|(?:\'[^\""]*\')/g, function (otherExpression, pointExpression) {
 			if (pointExpression) {
-				var pointItems = pointExpression.split(".");
-				var scope = Element_getScope(element/*.parentNode*/);
+				var pointItems = pointExpression.split(""."");
+				var scope = Element_getScope(element, parentElement);
 				var dataFun = scope[pointItems[0]];
 				if (dataFun === undefined) {
 					//class绑定
 					var vxData = element.vxData || (element.vxData = {});
-					var pointFuncs = vxData["vx-data-" + pointExpression];
+					var pointFuncs = vxData[""vx-data-"" + pointExpression];
 					if (pointFuncs == null) {
-						vxData["vx-data-" + pointExpression] = pointFuncs = [];
-						addClass(element, "vx-data-" + pointExpression);
+						vxData[""vx-data-"" + pointExpression] = pointFuncs = [];
+						addClass(element, ""vx-data-"" + pointExpression);
 					};
 
 					pointFuncs.push(setFun);
                 }
 
-				return 'fn("' + pointExpression + '")';
+				return 'fn(""' + pointExpression + '"")';
 			} else return otherExpression;
 		});
-		logicExpression = win.eval("0||function(fn){ return " + logicExpression + "}");
+		logicExpression = win.eval(""0||function(fn){ return "" + logicExpression + ""}"");
 
 		return function () {
 			return logicExpression(function (pointExpression) {
 
-				var pointItems = pointExpression.split(".");
-				var scope = Element_getScope(element/*.parentNode*/);
+				var pointItems = pointExpression.split(""."");
+				var scope = Element_getScope(element, parentElement);
 				var dataFun = scope[pointItems[0]];
 				if (dataFun !== undefined)
 					return Element_getObjectData(dataFun(), pointItems, 1);
@@ -202,22 +182,23 @@
     }
 
 	//return:[className, page.data, for.data]
-	function Element_getScope(element) {
+	//如果vx-for时，因为element是template元素，没有parentNode。因此需要通过parentElement传进来
+	function Element_getScope(element, parentElement) {
 		if (element) {
 			if (element.vxCs == viewx.cs) { //编译号相等
 				return element.vxScope;
 			} else { //编译号不相等，刷新scopes
 				element.vxCs = viewx.cs;
 
-				if (element.tagName != "HTML") { //非HTML标签
+				if (element.tagName != ""HTML"") { //非HTML标签
 
 					if (element.vxType != 2) { //普通标签、条件标签
-						return element.vxScope = Element_getScope(element.parentNode);
+						return element.vxScope = Element_getScope(element.parentNode || parentElement);
 					} else { //循环标签
-						var scope = element.vxScope = Object.assign({}, Element_getScope(element.parentNode));
+						var scope = element.vxScope = Object.assign({}, Element_getScope(element.parentNode || parentElement));
 
-						var forItemName = element.getAttribute("for-item") || "item";
-						var forIndexName = element.getAttribute("for-index") || "index";
+						var forItemName = element.getAttribute(""for-item"") || ""item"";
+						var forIndexName = element.getAttribute(""for-index"") || ""index"";
 
 						scope[forItemName] = function () {
 							return element.vxForItem;
@@ -263,7 +244,7 @@
 
 	function addClass(obj, cls) {
 		if (obj.classList) obj.classList.add(cls);
-		else if (!hasClass(obj, cls)) obj.className += " " + cls;
+		else if (!hasClass(obj, cls)) obj.className += "" "" + cls;
 	}
 
 	function removeClass(obj, cls) {
@@ -290,16 +271,16 @@
 
 		try {
 			while (true) {
-				var element = win.document.getElementsByClassName("vx")[0];
+				var element = win.document.getElementsByClassName(""vx"")[0];
 				if (element) {
 					Element_compile(page, element);
 				} else break;
 			}
 
 			while (true) {
-				var element = win.document.getElementsByTagName("vx")[0];
+				var element = win.document.getElementsByTagName(""vx"")[0];
 				if (element) {
-					Element_compile(page, element, document.createElement("span"));
+					Element_compile(page, element, document.createElement(""span""));
 				} else break;
 			}
 		} finally {
@@ -318,7 +299,7 @@
 			for (var keysName in o.observers) {
 				(function () {
 					var keysFun = o.observers[keysName],
-						keys = keysName.split(",");
+						keys = keysName.split("","");
 
 					var keysFun2 = function () {
 						var datas = [];
@@ -371,7 +352,7 @@
 
 	function Page_setSingleData(page, key, data) {
 		page.data[key] = data;
-		var vxDataKey = "vx-data-" + key;
+		var vxDataKey = ""vx-data-"" + key;
 		var elements = win.document.getElementsByClassName(vxDataKey);
 		Array.prototype.forEach.call(elements, function (element) {
 			var vxData = element.vxData || (element.vxData = {});
@@ -387,17 +368,17 @@
 		var onShow = o.onShow || function () { }
 		var onHide = o.onHide || function () { }
 		o.onShow = function () {
-			if (o.servicePath != null) win.require("/api/service.js").set(o.servicePath, this)
+			if (o.servicePath != null) win.require(""/api/service.js"").set(o.servicePath, this)
 			onShow.call(this)
 		}
 		o.onHide = function () {
-			if (o.servicePath != null) win.require("/api/service.js").set(o.servicePath, null)
+			if (o.servicePath != null) win.require(""/api/service.js"").set(o.servicePath, null)
 			onHide.call(this)
 		}
 
-		if (rootPage) throw "Page created";
+		if (rootPage) throw ""Page created"";
 		rootPage = new Page(o);
-		win.document.addEventListener("DOMContentLoaded", function () {
+		win.document.addEventListener(""DOMContentLoaded"", function () {
 			compileViewx(rootPage);
 			if (rootPage.onLoad) rootPage.onLoad();
 			if (rootPage.onShow) rootPage.onShow();
