@@ -6,9 +6,9 @@ viewx，一个简单的前端mvc框架
 #### 文件大小
 |文件名|文件大小|
 |--|--|
-|viewx.min.js.zip|2.05k|
-|viewx.min.js|4.7k|
-|viewx.js|12.8k|
+|viewx.min.js.zip|2.4k|
+|viewx.min.js|5.6k|
+|viewx.js|14.4k|
 
 
 #### 兼容版本
