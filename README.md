@@ -265,6 +265,36 @@ viewx，一个简单的前端mvc框架
 
 #### 绑定事件
 
+catch指阻止冒泡的绑定事件：
+
+```
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="../lib/jsc.min.js" type="text/javascript"></script>
+    <script src="../viewx.min.js"></script>
+    <script>
+        Page({
+            data: {
+                output:"点击我"
+            },
+            myClick: function (e) {
+                this.setData({ output: "Hi," + e.currentTarget.dataset.name })
+            }
+        })
+    </script>
+</head>
+<body>
+
+    <div class="vx" catch-click="myClick" data-name="Tom"><vx>{{output}}</vx></div>
+    
+</body>
+</html>
+```
+示例文件：/demo/catch-event.html
+
+> bind指带冒泡的绑定事件
+
 ```
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -289,4 +319,5 @@ viewx，一个简单的前端mvc框架
 </body>
 </html>
 ```
+示例文件：/demo/bind-event.html
 
