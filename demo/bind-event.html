@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="../lib/jsc.min.js" type="text/javascript"></script>
+    <script src="../viewx.min.js"></script>
+    <script>
+        Page({
+            data: {
+                output:"点击我"
+            },
+            myClick: function (e) {
+                this.setData({ output: "Hi," + e.currentTarget.dataset.name })
+            }
+        })
+    </script>
+</head>
+<body>
+
+    <div class="vx" bind-click="myClick" data-name="Tom"><vx>{{output}}</vx></div>
+    
+</body>
+</html>
