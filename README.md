@@ -265,7 +265,7 @@ viewx，一个简单的前端mvc框架
 
 #### 绑定事件
 
-catch指阻止冒泡的绑定事件：
+> catch指阻止冒泡的绑定事件
 
 ```
 <!DOCTYPE html>
