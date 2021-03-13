@@ -32,6 +32,8 @@ viewx，一个简单的前端mvc框架
 | ![iOS Safari](https://developer.mozilla.org/static/media/safari.3679eb31.svg "iOS Safari") | iOS Safari | 3.2 |
 | ![Samsung Internet](https://developer.mozilla.org/static/media/samsung-internet.6fd7f423.svg "Samsung Internet") | Samsung Internet | 1.0 |
 
+> 兼容IE5.5-IE8浏览器，需要引用/lib/jsc.min.js。（如果不需要兼容低版本浏览器，则不需要引用jsc库）
+
 #### 编译原理
 
 1. 通过document.getElementsByClass("vx")，寻找需要编译的标签
