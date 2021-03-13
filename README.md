@@ -43,7 +43,7 @@ viewx，一个简单的前端mvc框架
 #### 动态编译嵌套模板
 
 > 可能一些特殊的开发场景，使用动态编译比预编译更方便。<br>
-> 如：把自定义模板存放在表中，通过ajax获取模板内容，通过嵌套模板(v-template)，动态编译模板并展示。
+> 如：把自定义模板存放在表中，通过ajax获取模板内容，通过嵌套模板(v-inner-html)，动态编译模板并展示。
 
 ```
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -65,7 +65,7 @@ viewx，一个简单的前端mvc框架
 </head>
 <body>
     动态编译嵌套模板：
-    <div class="vx" v-template="{{myTemplate}}"></div>
+    <div class="vx" v-inner-html="{{myTemplate}}"></div>
 </body>
 </html>
 
@@ -263,4 +263,30 @@ viewx，一个简单的前端mvc框架
 ```
 示例文件：/demo/if.html
 
+#### 绑定事件
+
+```
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="../lib/jsc.min.js" type="text/javascript"></script>
+    <script src="../viewx.min.js"></script>
+    <script>
+        Page({
+            data: {
+                output:"点击我"
+            },
+            myClick: function (e) {
+                this.setData({ output: "Hi," + e.currentTarget.dataset.name })
+            }
+        })
+    </script>
+</head>
+<body>
+
+    <div class="vx" bind-click="myClick" data-name="Tom"><vx>{{output}}</vx></div>
+    
+</body>
+</html>
+```
 
