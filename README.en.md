@@ -1,7 +1,7 @@
-# viewx
+# ViewxJS
 
 #### Introduction
-viewx, a simple front-end mvc framework
+ViewxJS, a simple front-end mvc framework
 
 #### File size
 |File name|File size|File description|
