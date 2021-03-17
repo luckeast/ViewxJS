@@ -1,7 +1,7 @@
-# ViewX
+# ViewxJS
 
 #### 介绍
-ViewX，一个简单的前端mvc框架
+ViewxJS，一个简单的前端mvc框架
 
 #### 文件大小
 |文件名|文件大小|文件说明|
