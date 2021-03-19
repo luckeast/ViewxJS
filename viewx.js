@@ -9,8 +9,10 @@
 
 	/*** Element ***/
 	function Element_compile(page, targetElement, replaceElement) {
-		var element = replaceElement || targetElement;
-		var parentElement = targetElement.parentNode;
+		var element = replaceElement || targetElement,
+			vxData = element.vxData || (element.vxData = {}),
+			parentElement = targetElement.parentNode,
+			initFuns = []; //当值为null时，表示元素带for属性
 
 		if (replaceElement) {
 			//复制属性
@@ -25,18 +27,15 @@
 			parentElement.replaceChild(replaceElement, targetElement);
 		}
 
-		var vxData = element.vxData || (element.vxData = {});
-		//var vx = element.vx || (element.vx = {});
-		//var classMap = vx.classMap || (vx.classMap = { });
-		
 		Array.prototype.forEach.call(element.attributes, function (attr) {
 			if (attr.specified) { //如果这个属性你在源代码或者在脚本中明确指定的话，它总是返回真。否则它是由文档的DTD默认定义的，将总是返回假。
 				var isViewx = attr.name.substr(0, 3) == "vx-",
-					attrName = isViewx ? attr.name.substr(3) : attr.name;
+					attrName = isViewx ? attr.name.substr(3) : attr.name,
+					attrType = 0;
 
 				switch (attrName) {
 					case "if":
-						element.vxType = 1;
+						element.vxType = attrType = 1;
 						if (!element.vxTemplate) {
 							element.setAttribute("template", "...");
 							element.vxTemplate = element.innerHTML;
@@ -45,9 +44,10 @@
 					case "for":
 						//if (element.parentNode.childNodes.length > 3) throw "for missing contain";
 
-						element.vxType = 2;
+						element.vxType = attrType = 2;
+						initFuns = null;
 						Element_clearChild(parentElement);
-							
+
 						if (!parentElement.vxTemplate) {
 							parentElement.setAttribute("template", "...");
 							parentElement.vxTemplate = element;
@@ -67,7 +67,7 @@
 						attrValue = attrValue[0];
 					else
 						attrValue = attrValue.join("");
-						
+
 					switch (attrName) {
 						case "if":
 							if (vxData[attrName] != attrValue) {
@@ -85,35 +85,35 @@
 								var documentFragment = document.createDocumentFragment();
 								for (var i = 0; i < attrValue.length; i++) {
 									var cloneElement = Element_Clone(element);
-									cloneElement.removeAttribute("vx-for");
+									cloneElement.removeAttribute(isViewx ? "vx-for" : "for");
 									cloneElement.vxForIndex = i;
 									cloneElement.vxForItem = attrValue[i];
 									cloneElement.vxType = 2;
 									documentFragment.appendChild(cloneElement);
 								}
-								parentElement.appendChild(documentFragment, element);
+								parentElement.appendChild(documentFragment);
 								compileViewx(page);
 							};
 							break;
 						case "inner-html":
 							Element_clearChild(element);
-							if(!element.vxInnerHide) {
+							if (!element.vxInnerHide) {
 								element.innerHTML = attrValue;
 								compileViewx(page);
 							}
 							break;
 						case "inner-text":
 							Element_clearChild(element);
-							if(!element.vxInnerHide) element.innerText = attrValue;
+							if (!element.vxInnerHide) element.innerText = attrValue;
 							break;
 						default:
 							var attrNameItems = attrName.split("-");
-							if(attrNameItems.length <= 1)
+							if (attrNameItems.length <= 1)
 								element.setAttribute(attrName, attrValue);
 							else {
-								switch(attrNameItems[0]){
+								switch (attrNameItems[0]) {
 									case "capture":
-										switch(attrNameItems[1]){
+										switch (attrNameItems[1]) {
 											case "catch":
 												Element_addEventListener(page, element, vxData, attrName, attrNameItems, 2, attrValue, false, true);
 												break;
@@ -138,10 +138,10 @@
 				}
 
 				var attrFuncParts = [];
-				if(isViewx){
+				if (isViewx) {
 					attr.value.match(/(?:\{\{([^\}]*)\}\})|((?:[^{]+|\{))/g).forEach(function (matchItem) {
 						if (matchItem.indexOf("{{") >= 0) {
-							attrFuncParts.push(Element_compileLogicExpression(page, element, parentElement, matchItem, attrFunc));
+							attrFuncParts.push(Element_compileLogicExpression(page, element, parentElement, matchItem, attrFunc, attrType));
 						} else {
 							attrFuncParts.push(function () {
 								return matchItem; //stringExpression
@@ -149,53 +149,62 @@
 						}
 					});
 				} else {
-					attrFuncParts.push(function(){
+					attrFuncParts.push(function () {
 						return element.getAttribute(attrName);
 					});
 				}
 
-				attrFunc(); //初始化一次
+				if (initFuns)
+					initFuns.push(attrFunc); //初始化一次
+				else if(attrType == 2)
+					attrFunc(); //初始化一次
+				
 			}
 		});
 
 
 		//<span>替换<vx>
 		//replaceElement表示是vx标签
-		if (replaceElement)
-		{
+		if (replaceElement) {
 			if (element.vxInnerText == null) element.vxInnerText = element.innerText.trim();
 			if (element.vxInnerText.substr(0, 2) == "{{" && element.vxInnerText.substr(element.vxInnerText.length - 2) == "}}") {
 
 				var textFunc = function () {
 					element.innerText = expression(page, element);
 				};
-				var expression = Element_compileLogicExpression(page, element, parentElement, element.vxInnerText, textFunc);
+				var expression = Element_compileLogicExpression(page, element, parentElement, element.vxInnerText, textFunc, 3);
 
-				textFunc(); //初始化一次
+				if (initFuns)
+					initFuns.push(textFunc); //初始化一次
 			} else throw element.vxInnerText;
 		}
 
-		removeClass(element, "vx");
+		if (initFuns) { //表示没有for属性
+			for (var i = 0; i < initFuns.length; i++) initFuns[i](); //初始化一次
+			removeClass(element, "vx");
+		}	
 	}
 
-	function Element_compileLogicExpression(page, element, parentElement, logicExpressionOuter, /*设置程序*/setFun)
-	{
+	function Element_compileLogicExpression(page, element, parentElement, logicExpressionOuter, /*设置程序*/setFun, /*属性类别*/attrType) {
 		var logicExpression = logicExpressionOuter.substr(2, logicExpressionOuter.length - 4).replace(/(?:([a-zA-Z][\w\.\[\]0-9]*))|(?:\"[^\"]*\")|(?:\'[^\"]*\')/g, function (otherExpression, pointExpression) {
 			if (pointExpression) {
 				var pointItems = pointExpression.split(".");
 				var scope = Element_getScope(element, parentElement);
 				var dataFun = scope[pointItems[0]];
 				if (dataFun === undefined) {
+					//如果是for属性，则把class通知加到parentElement
+					var targetElement = attrType != 2 ? element : parentElement;
 					//class绑定
-					var vxData = element.vxData || (element.vxData = {});
+					var vxData = targetElement.vxData || (targetElement.vxData = {});
 					var pointFuncs = vxData["vx-data-" + pointExpression];
 					if (pointFuncs == null) {
 						vxData["vx-data-" + pointExpression] = pointFuncs = [];
-						addClass(element, "vx-data-" + pointExpression);
+
+						addClass(targetElement, "vx-data-" + pointExpression);
 					};
 
 					pointFuncs.push(setFun);
-                }
+				}
 
 				return 'fn("' + pointExpression + '")';
 			} else return otherExpression;
@@ -215,7 +224,7 @@
 
 			});
 		}
-    }
+	}
 
 	//return:[className, page.data, for.data]
 	//如果vx-for时，因为element是template元素，没有parentNode。因此需要通过parentElement传进来
@@ -252,22 +261,18 @@
 		} else return {};
 	}
 
-	function Element_getObjectData(data, pointItems, start)
-	{
-		for (var i = start; i < pointItems.length; i++)
-		{
+	function Element_getObjectData(data, pointItems, start) {
+		for (var i = start; i < pointItems.length; i++) {
 			if (data == null) return null;
 			data = data[pointItems[i]];
 		}
 		return data;
 	}
 
-	function Element_Clone(element)
-	{
+	function Element_Clone(element) {
 		var cloneNode = element.cloneNode();
 
-		for (var i = 0; i < element.childNodes.length; i++)
-		{
+		for (var i = 0; i < element.childNodes.length; i++) {
 			cloneNode.appendChild(Element_Clone(element.childNodes[i]));
 		}
 
@@ -293,32 +298,32 @@
 
 	function Element_clearChild(element) {
 		while (element.hasChildNodes()) element.removeChild(element.firstChild);
-    }
+	}
 
 	function Element_addEventListener(page, element, vxData, attrName, attrNameItems, attrNameIndex, attrValue, eventText, bubble, capture) {
 		var eventName = attrNameItems.slice(attrNameIndex).join("-");
 		var eventFun = vxData[attrName];
-		if(eventFun) element.removeEventListener(eventName, eventFun, capture);
+		if (eventFun) element.removeEventListener(eventName, eventFun, capture);
 
 		eventFun = page[attrValue];
-		if(eventFun)
-			Element_addEventListener2(element, eventName, function(e){
+		if (eventFun)
+			Element_addEventListener2(element, eventName, function (e) {
 				var e2 = e || win.event; //兼容IE
-				if(!bubble) e ? e.stopPropagation() : win.event.cancelBubble = true;
-				
+				if (!bubble) e ? e.stopPropagation() : win.event.cancelBubble = true;
+
 				var e3 = {
-					target:e2.vxTarget || (e2.vxTarget = { dataset : (e2.target || e2.srcElement).dataset }),
-					currentTarget:{ dataset : element.dataset }
+					target: e2.vxTarget || (e2.vxTarget = { dataset: (e2.target || e2.srcElement).dataset }),
+					currentTarget: { dataset: element.dataset }
 				};
 				eventFun.call(page, e3);
 			}, capture);
 	}
 
-	function Element_addEventListener2(element, name, fun, capture){
-		if(element.addEventListener){
+	function Element_addEventListener2(element, name, fun, capture) {
+		if (element.addEventListener) {
 			element.addEventListener(name, fun, capture);
 		} else {
-			element.attachEvent("on"+name, fun, capture);
+			element.attachEvent("on" + name, fun, capture);
 		}
 	}
 
@@ -348,7 +353,7 @@
 			}
 		} finally {
 			viewx.ci = false;
-        }
+		}
 	};
 
 	/*** Page ***/
