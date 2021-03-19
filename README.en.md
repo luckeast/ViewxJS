@@ -7,8 +7,8 @@ ViewxJS, a simple front-end mvc framework
 |File name|File size|File description|
 |--|--|--|
 |viewx.min.js.zip|2.4k|js code compression + zip compression for production and operation environments with higher network requirements|
-|viewx.min.js|5.6k|js code compression, used in production operations|
-|viewx.js|14.4k|js source code, used for development and testing|
+|viewx.min.js|5.7k|js code compression, used in production operations|
+|viewx.js|14.5k|js source code, used for development and testing|
 |jsc.min.js|2.79k|For compatibility with lower version browsers, such as: IE5.5-IE8.0|
 
 
